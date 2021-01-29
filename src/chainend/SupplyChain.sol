@@ -1,9 +1,3 @@
-/*
- * TMD
- * 我都烦死了
- * 不写错误检查了
- */
-
 pragma solidity >= 0.4.24 < 0.6.11;
 
 import "./Table.sol";
