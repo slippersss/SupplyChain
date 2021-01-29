@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>管理员</title>
+		<link rel="stylesheet" type="text/css" href="./css/simplecss.css">
+		<link rel="stylesheet" type="text/css" href="./css/administrator.css">
+		<script src="./js/ajax.js"></script>
+	</head>
+	<body>
+		<div class="nav">
+			<div class="container">
+				<div class="row">
+					<div class="col-md-10">
+						<a href="">供应链金融平台</a>
+						<button class="btn btn-success" id="add-btn">添加账户</button>
+					</div>
+					<div class="col-md-2"><a href="./index.html" id="logout">退出系统</a></div>
+				</div>
+			</div>
+		</div>
+		<div class="container">
+			<div class="row">
+				<div class="col-md-12">
+					<table class="table table-bordered" id="table">
+						<tr>
+							<th>账户地址</th>
+							<th>账户名字</th>
+							<th>账户身份</th>
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+
+
+
+		<div id="panelBak"></div>
+		<!--添加用户panel-->
+		<div class="panel panel-default" id="adduser">
+			<div class="panel-heading">
+				<div class="panel-title">添加账户</div>
+			</div>
+			<div class="panel-body">
+				<div class="row">
+					<div class="col-md-3">账户地址</div>
+					<div class="col-md-9"><input type="text" id="id"></div>
+				</div>
+				<div class="row">
+					<div class="col-md-3">账户名字</div>
+					<div class="col-md-9"><input type="text" id="name"></div>
+				</div>
+				<div class="row">
+					<div class="col-md-3">账户身份</div>
+					<!-- <div class="col-md-8"><input type="text" id="role"></div> -->
+					<div class="col-md-9">
+						<select id="role">
+							<option>enterprise</option>
+							<option>institution</option>
+						</select>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-3">信用分</div>
+					<div class="col-md-9"><input type="text" id="credit"></div>
+				</div>
+			</div>
+			<div class="panel-footer">
+				<button class="btn btn-primary" id="save-btn">确认</button>
+				<button class="btn btn-primary" id="cancel-btn">取消</button>
+			</div>
+		</div>
+
+
+		<script>
+			var oTable = document.getElementById('table');
+
+			//直接获取后台数据信息
+			getData();
+
+			//添加
+			var addBtn = document.getElementById("add-btn");
+			//添加
+			var saveBtn = document.getElementById("save-btn");
+			var cacelBtn = document.getElementById("cancel-btn");
+
+			//面板、背景对象
+			var adduser = document.getElementById("adduser");
+			var edituser = document.getElementById("edituser");
+			var panelBak = document.getElementById("panelBak");
+
+			//触发添加功能，显示面板
+			addBtn.onclick = function() {
+				panelBak.style.display = "block";
+				adduser.style.display = "block";
+				return false;
+			}
+			//取消添加功能
+			cacelBtn.onclick = function() {
+				panelBak.style.display = "none";
+				adduser.style.display = "none";
+				return false;
+			}
+			//保存添加的用户数据
+			saveBtn.onclick = function() {
+				var oId = document.getElementById('id');
+				var oName = document.getElementById('name');
+				var oRole = document.getElementById('role');
+				var oCredit = document.getElementById('credit');
+
+				if (NotNumber(oCredit.value)) {
+					alert('信用分必须为有效数值!')
+				} else {
+					ajax({
+						method: 'POST',
+						url: '/insertAccount',
+						data: '{"id":"' + oId.value + '","name":"' + oName.value + '","role":"' + oRole.value + '","credit":"' + oCredit.value +
+							'"}',
+						success(result) {
+							panelBak.style.display = "none";
+							adduser.style.display = "none";
+							// 这里直接显示各种情况的消息
+							alert(result.message);
+							if (result.status === 0) {
+								window.location.reload();
+							}
+						}
+					})
+				}
+			}
+
+
+			//删除
+			oTable.onclick = function(ev) {
+				var ev = ev || event;
+				if (ev.target.innerHTML === '删除') {
+					//找到对应父级tr（表格行）
+					var oTdlist = ev.target.parentNode.parentNode.childNodes;
+					ajax({
+						method: 'POST',
+						url: '/removeAccount',
+						data: '{"id":"' + oTdlist[0].innerHTML + '"}',
+						success(result) {
+							alert(result.message);
+							if (result.status === 0) {
+								window.location.reload();
+							}
+						}
+					})
+				}
+			}
+
+
+			///////////////////////////////////////////
+			//获取标签的style属性
+			function getStyle(obj, attr) {
+				return window.getComputedStyle ? window.getComputedStyle(obj)[attr] : obj.currentStyle[attr];
+			}
+
+			//封装成函数，可以多次调用
+			function getData() {
+				ajax({
+					method: 'GET',
+					url: '/selectAccount',
+					success: function(result) {
+						// 删除原表格
+						oTable.innerHTML = '';
+
+						var tr = document.createElement('tr');
+						tr.innerHTML = '<th>账户地址</th><th>账户名字</th><th>账户身份</th><th>操作</th>';
+						oTable.append(tr);
+
+						if (result.status === 0) {
+							//    将数据显示到表格
+							for (var i = 0; i < result.data.length; i++) {
+								var oTr = document.createElement('tr');
+								var oTd1 = document.createElement('td');
+								var oTd2 = document.createElement('td');
+								var oTd3 = document.createElement('td');
+								oTd1.innerHTML = result.data[i].id;
+								oTd2.innerHTML = result.data[i].name;
+								oTd3.innerHTML = result.data[i].role;
+								oTr.append(oTd1);
+								oTr.append(oTd2);
+								oTr.append(oTd3);
+
+								// 删除按钮
+								var op = document.createElement('td');
+								op.innerHTML = '<button class="btn btn-danger">删除</button>'
+								oTr.append(op);
+
+								//将一行加入表格
+								oTable.append(oTr);
+							}
+						} else {
+							alert(result.message);
+						}
+					}
+				})
+			}
+
+			function NotNumber(val) {
+				if (val == "" || isNaN(val)) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+		</script>
+	</body>
+</html>

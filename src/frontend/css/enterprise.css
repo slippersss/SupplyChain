@@ -1,0 +1,130 @@
+/*后台页面样式*/
+.admin-h1 {
+	text-align: center;
+}
+
+.nav {
+	height: 40px;
+	line-height: 40px;
+	background-color: black;
+}
+
+.nav a {
+	color: white;
+}
+
+.btn {
+	padding: 3px 6px;
+}
+
+#table td {
+	padding: 12px;
+}
+
+/* 功能选择栏 begin ------------------------------- */
+#header {
+	text-align: center;
+	line-height: 40px;
+	height: 40px;
+	background-color: #eeeeee;
+}
+
+#header div {
+	text-align: center;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	-webkit-user-select: none;
+	user-select: none;
+}
+
+#header span {
+	margin-left: 20px;
+	margin-right: 20px;
+}
+
+#header .active {
+	font-weight: bold;
+}
+
+/* 功能选择栏 end ------------------------------- */
+
+
+/*功能面板*/
+/*公共属性*/
+#panel_sign input,
+#panel_financing input,
+#panel_transfer input {
+	width: 100%;
+}
+
+#panel_sign select,
+#panel_financing select,
+#panel_transfer select {
+	width: 100%;
+}
+
+
+#panel_sign .panel-footer,
+#panel_financing .panel-footer,
+#panel_transfer .panel-footer {
+	text-align: center;
+}
+
+#panel_sign .row,
+#panel_financing .row,
+#panel_transfer .row {
+	height: 45px;
+	text-align: center;
+	padding-left: 0;
+}
+
+#panel_sign,
+#panel_financing,
+#panel_transfer {
+	position: absolute;
+	background-color: white;
+	left: 50%;
+	top: 50%;
+	display: none;
+}
+
+#panel_confirm,
+#panel_pay {
+	display: none;
+}
+
+#panel_sign .panel-heading,
+#panel_financing .panel-heading,
+#panel_transfer .panel-heading {
+	background-color: #16a085;
+	color: white;
+}
+
+/*私有属性*/
+/* panel_sign */
+#panel_sign {
+	width: 580px;
+	margin-left: -290px;
+	height: 250;
+	margin-top: -125px;
+}
+
+/* panel_financing */
+#panel_financing {
+	width: 580px;
+	margin-left: -290px;
+	height: 210px;
+	margin-top: -105px;
+}
+
+/* panel_transfer */
+#panel_transfer {
+	width: 580px;
+	margin-left: -290px;
+	height: 210px;
+	margin-top: -105px;
+}
+
+/* panel_confirm */
+
+/* panel_pay */

@@ -1,0 +1,24 @@
+/*后台页面样式*/
+.admin-h1 {
+	text-align: center;
+}
+
+.nav {
+	height: 40px;
+	line-height: 40px;
+	background-color: black;
+}
+
+.nav a {
+	color: white;
+}
+
+.btn {
+	padding: 3px 6px;
+}
+
+#table td {
+	padding: 12px;
+}
+
+
