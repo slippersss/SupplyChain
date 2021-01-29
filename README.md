@@ -130,6 +130,7 @@ cp ~/fisco/console/conf/sdk.key ~/fisco/console/conf/sdk.crt ~/fisco/console/con
             "password": "123456"
         }
     },
+...
 ```
 
 同时要将使用 get_account.sh 生成的管理员账户的 .pem 文件重命名为 Admin.pem 并移动至 ./chainend/nodejs-sdk/packages/cli/conf/accounts 下，具体步骤参考下面的教程。
