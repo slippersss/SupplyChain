@@ -1,200 +1,252 @@
-### 简单供应链的实现
-
-简单供应链主要有三种角色：
-
-1. 管理员
-
-   管理员负责供应链的创建，包括 Account 账户表的创建、Bill 账单表的创建、enterprise 企业的加入、institution 机构的加入，其中前两者在创建供应链时顺便在服务器端直接完成，因此主要是实现后两者的功能。
-
-   **链端关于加入账户的有关接口为**
-
-   > call  SupplyChain  latest  insertAccountTable  [id]  [name]  [role]  [credit]
-
-   涉及四个**参数**，分别是
-
-   | 参数   | 说明                                                       |
-   | ------ | ---------------------------------------------------------- |
-   | id     | 加入的企业或机构的账户地址                                 |
-   | name   | 加入的企业或机构的名字                                     |
-   | role   | 加入的是企业或机构，取值只有 "enterprise" 和 "institution" |
-   | credit | 加入的企业或机构的初始信用分，取值一般可以默认为 60        |
-
-   **返回值**说明：
-
-   + -1 表明存在重复的 id，因此账户加入失败
-   + -2 表明存在重复的 name，因此账户加入失败
-
-   **需求**为，管理员进入系统后，提供一个按钮，名为 "加入新账户"，而后提供表单，填写 id、name、role、credit 四个内容并提交，其中主要限制要求有
-
-   + id 要求为以 "0x" 为前缀，后跟 40 位数字（16 进制，0 - 9 及 a - f）的形式
-   + name 要求不含空格
-   + role 要求从 "enterprise" 和 "institution" 中二选一
-   + credit 要求取值整数 0 - 100
-   
-2. 企业
-
-   企业有签发、转让、融资、支付的功能，四者都需要实现。
-
-   **链端关于签发的有关接口为**
-
-   > call  SupplyChain  latest  sign  [lender]  [witness]  [amount]  [duration]
-
-   涉及四个**参数**，分别是
-
-   | 参数     | 说明                 |
-   | -------- | -------------------- |
-   | lender   | 被借款方的账户地址   |
-   | witness  | 见证机构的账户地址   |
-   | amount   | 借款金额             |
-   | duration | 借款时长，以天为单位 |
-
-   **返回值**说明：
-
-   + -1 表明 borrower 不存在，在这里即发起这个签发操作的账户并没有加入供应链
-   + -2 表明 lender 不存在
-   + -3 表明 witness 不存在
-   + -4 表明 borrower 不是企业，在这里即发起这个签发操作的账户并非企业，无权签发
-   + -5 表明 lender 不是企业
-   + -6 表明 witness 不是机构
-   + -7 表明 borrower 信用分不足，在这里即发起这个签发操作的账户信用分不足以支持其签发
-
-   **需求为**，企业进入系统后，提供一个按钮，名为 "签发"，而后提供表单，填写 lender、witness、amount、duration 四个内容并提交，其中主要限制要求有
-
-   + lender 要求从供应链上的企业列表中选择得到
-   + witness 要求从供应链上的机构列表中选择得到
-   + amount 要求是正整数
-   + duration 要求是正整数
-
-   ****
-
-   **链端关于转让的有关接口为**
-
-   > call  SupplyChain  latest  transfer  [receiver]  [amount]
-
-   涉及两个**参数**，分别是
-
-   | 参数     | 说明             |
-   | -------- | ---------------- |
-   | receiver | 接收方的账户地址 |
-   | amount   | 转让金额         |
-
-   **返回值**说明：
-
-   + -1 表明 sender 不存在，在这里即发起这个转让操作的账户并没有加入供应链
-   + -2 表明 receiver 不存在
-   + -3 表明 sender 不是企业，在这里即发起这个转让操作的账户并非企业，无权转让
-   + -4 表明 receiver 不是企业
-   + -5 表明 sender 资产不够转让，在这里即发起这个转让操作的账户资产不足以支持其转让
-
-   **需求**为，企业进入系统后，提供一个按钮，名为 "转让"，而后提供表单，填写 receiver、amount 两个内容并提交，其中主要限制要求有
-
-   + receiver 要求从供应链上的企业列表中选择得到
-   + amount 要求是正整数
-
-   ****
-
-   **链端关于融资的有关接口为**
-
-   > call  SupplyChain  latest  financing  [institution]  [amount]
-
-   涉及两个**参数**，分别是
-
-   | 参数        | 说明           |
-   | ----------- | -------------- |
-   | institution | 机构的账户地址 |
-   | amount      | 转让金额       |
-
-   **返回值**说明：
-
-   + -1 表明 enterprise 不存在，在这里即发起这个融资操作的账户并没有加入供应链
-   + -2 表明 institution 不存在
-   + -3 表明 enterprise 不是企业，在这里即发起这个融资操作的账户并非企业，无权融资
-   + -4 表明 institution 不是机构
-   + -5 表明 enterprise 资产不够融资，在这里即发起这个融资操作的账户资产不足以支持其融资
-
-   **需求**为，企业进入系统后，提供一个按钮，名为 "转让"，而后提供表单，填写 institution、amount 两个内容并提交，其中主要限制要求有
-
-   + institution 要求从供应链上的机构列表中选择得到
-   + amount 要求是正整数
-
-   ****
-
-   **链端关于支付的有关接口为**
-
-   > call  SupplyChain  latest  pay  [lender]  [witness]  [timestamp]  [deadline]
-
-   涉及四个**参数**，分别是
-
-   | 参数      | 说明               |
-   | --------- | ------------------ |
-   | lender    | 被借款方的账户地址 |
-   | witness   | 见证机构的账户地址 |
-   | timestamp | 账单的时间戳       |
-   | deadline  | 账单的期限时间     |
-
-   **返回值**说明：
-
-   + 暂无
-
-   **需求**为，企业进入系统后，提供一个按钮，名为 "支付"，而后提供表单，填写 lender、witness、timestamp、deadline两个内容并提交（应该是列出所有账单供其选择），其中主要限制要求有
-
-   + lender 要求从供应链上的企业列表中选择得到
-   + witness 要求从供应链上的机构列表中选择得到
-   + timestamp 要求从时间转化过来（事实上实现应该不是这样的）
-   + deadline 要求从时间转化过来（事实上实现应该不是这样）
-
-   上面的说的实现，应该是列出账单然后选择，这样就不用天表单了。
-
-3. 机构
-
-   照理来说，机构是需要确认是否批准某一签发操作以及是否确认某一支付操作已到账的，暂时没写，可能目前就只是简单地查看一下自己拥有的账单吧。
-
-### 大致的样子
-
-1. 管理员登陆进去
-
-   ![1](README.assets/1.svg)
-
-2. 企业登陆进去
-
-   ![2](README.assets/2.svg)
-
-3. 机构登陆进去
-
-   暂无
-
-### 需要参考的资料
-
-[Node.js SDK](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/sdk/nodejs_sdk/install.html)
-
-[Node.js API 官方文档版本](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/sdk/nodejs_sdk/api.html)
-
-[Node.js API 官方 github 版本](https://github.com/FISCO-BCOS/nodejs-sdk)
-
-### 补充信息写这下面
-
-
-
-+ 2021.01.24
-
-  + 原来的智能合约我给改了，现在上面的版本我还没测试，可能有 bug
-
-  + Node.js 我试了一下，我不太会用，大概像这样用？
-
-    ```javascript
-    const Configuration = require('/home/slippersss/win10/blockchain/lab/nodejs-sdk/packages/api').Configuration;
-    const Web3jService = require('/home/slippersss/win10/blockchain/lab/nodejs-sdk/packages/api').Web3jService;
-    
-    console.log('Begin testing');
-    
-    const configuration = new Configuration('/home/slippersss/win10/blockchain/lab/nodejs-sdk/packages/cli/conf/config.json');
-    
-    const web3jService = new Web3jService(configuration)
-    
-    web3jService.getBlockNumber().then((result) => {
-        result.result = parseInt(result.result, '16').toString();
-        console.log(result);
-    });
-    ```
-
-  + 安装那个 SDK 还有点问题，我还没怎么看懂
+# 文件组织
+
+| 名字                                                      | 用途                                                         |
+| --------------------------------------------------------- | ------------------------------------------------------------ |
+| src                                                       | 编写的链端、后端、前端代码                                   |
+| fisco                                                     | 热身阶段搭建的联盟链                                         |
+| SupplyChain                                               | 报告中演示搭建的供应链，大概率不能直接运行，请按照下面的部署方法自行部署 |
+| 供应链实验报告.pdf                                        | 此次实验报告                                                 |
+| 18340097_18340100_18340105_项目设计说明及功能测试文档.pdf | 设计与测试阶段实验报告（上一阶段）                           |
+| 视频演示.mp4                                              | 视频演示供应链的基本用法，由于时间有限，其中操作有限，实际使用还有其他功能和错误检测 |
+
+# 供应链部署
+
+我们使用的环境是 Ubuntu 20.04，要求安装有 nodejs 与 npm 等工具，具体参考[这个网址](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/sdk/nodejs_sdk/install.html)进行环境搭建。另外，此处部署的前提要求是在热身阶段已经完成单群组 FISCO-BCOS联盟链的搭建，若还没有搭建，可以参考[这个网址](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/installation.html)进行搭建。
+
+### 1. 整体目录
+
+以 SupplyChain 为名的目录为基础，其中含有 chainend、backend、frontend 三个目录，即
+
+```
+.
+├── backend
+├── chainend
+└── frontend
+```
+
+### 2. 拷贝 nodes 目录
+
+在热身阶段已经完成单群组 FISCO-BCOS联盟链的搭建中，有目录 ~/fisco/nodes 目录，包含节点信息，将其拷贝到 ./chained 中，如下
+
+```
+.
+├── backend
+├── chainend
+│   └── nodes
+└── frontend
+```
+
+### 3. 下载 nodejs SDK
+
+在 ./chained 目录下，根据[这个网址](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/installation.html)下载 nodejs SDK，并按照指引安装依赖项等，即
+
+```shell
+git clone https://github.com/FISCO-BCOS/nodejs-sdk.git
+npm config set registry https://registry.npm.taobao.org
+cd nodejs-sdk
+npm install
+npm run repoclean
+npm run bootstrap
+```
+
+完成后如下
+
+```
+.
+├── backend
+├── chainend
+│   ├── nodejs-sdk
+│   └── nodes
+└── frontend
+```
+
+### 4. 配置证书和端口
+
+在热身阶段已经完成单群组 FISCO-BCOS联盟链的搭建中，有目录 ~/fisco/console/conf 目录，包含所需的证书，将其拷贝到 ./chainend/nodejs-sdk/packages/cli/conf/authentication 中，如下
+
+```shell
+cp ~/fisco/console/conf/sdk.key ~/fisco/console/conf/sdk.crt ~/fisco/console/conf/ca.crt ./chainend/nodejssdk/packages/cli/conf/authentication/
+```
+
+完成后如下
+
+```
+./chainend/nodejs-sdk/packages/cli/conf/authentication
+├── ca.crt
+├── sdk.crt
+└── sdk.key
+```
+
+同时打开 ./chainend/nodejs-sdk/packages/cli/conf/confjg.json 文件，根据自己的搭建的链的情况修改 "nodes" 项，若是按照热身阶段搭建的联盟链，则可以按照下面修改
+
+```json
+...
+"nodes": [
+        {
+            "ip": "127.0.0.1",
+            "port": "20200"
+        },
+        {
+            "ip": "127.0.0.1",
+            "port": "20201"
+        },
+        {
+            "ip": "127.0.0.1",
+            "port": "20202"
+        },
+        {
+            "ip": "127.0.0.1",
+            "port": "20203"
+        },
+        {
+            "ip": "127.0.0.1",
+            "port": "20204"
+        }
+    ],
+...
+```
+
+其中 config.json 还有账户的设置，默认下，启用 ndejs SDK 自带控制台会启动这里面的第一个账户 alice，我们可以自己设置账户名为 Admin，以之为管理员加入其中，由于是管理员，且搭建初期需要用控制台来操作，因此需要将 Admin 放在第一个位置，如下
+
+```json
+{
+    "encryptType": "ECDSA",
+    "accounts": {
+        "Admin": {
+            "type": "pem",
+            "value": "./accounts/Admin.pem"
+        },
+        "alice": {
+            "type": "pem",
+            "value": "./accounts/alice.pem"
+        },
+        "bob": {
+            "type": "pem",
+            "value": "./accounts/bob.pem"
+        },
+        "cherry": {
+            "type": "p12",
+            "value": "./accounts/cherry.p12",
+            "password": "123456"
+        }
+    },
+...
+```
+
+同时要将使用 get_account.sh 生成的管理员账户的 .pem 文件重命名为 Admin.pem 并移动至 ./chainend/nodejs-sdk/packages/cli/conf/accounts 下，具体步骤参考下面的教程。
+
+### 5. 完善工具包
+
+链端操作需要用到四个工具，分别是 get_account.sh、register_account.sh、login_account.sh 和 keccak-256sum，其中 get_account.sh 可以在 ~/fisco/console 目录下取得，register_account.sh 和 login_account.sh 是我们自己编写的，前者是对 get_account.sh 进行包装，后者是登陆账户判断，而 keccak-256sum 可以在[这个网址](https://github.com/vkobel/ethereum-generate-wallet/tree/master/lib)下载得到。将这三个工具置于 ./chainend/utils 中，完成后如下
+
+```
+./chainend/utils
+├── get_account.sh
+├── keccak-256sum
+└── login_account.sh
+```
+
+由于前期操作需要管理员，我们直接在 ./chainend/utils 目录下执行 get_account.sh，在同目录下的 accounts 中获得第一个账户，如下
+
+<img src="README.assets/image-20210129101006098.png" alt="image-20210129101006098" style="zoom:80%;" />
+
+将其对应的 .pem 和 .public.pem 重命名为 Admin.pem 和 Admin.public.pem（原来的 0x... 需要记住，后面会用到，即账户地址），并移动到 ./chainend/nodejs-sdk/packages/cli/conf/accounts 目录下（后续在前端注册账户，register_account.sh 会自动将账户移动到这个目录下，需要更名请到此目录下寻找账户）
+
+### 6. 将对应文件放置到对应位置
+
+将 SupplyChain.sol 和 Table.sol 移动至 ./chainend/nodejs-sdk/packages/cli/contracts 目录下，将 index.js 移动至 ./backend 目录下，将 *.html 和 css、js、image 目录移动至 ./frontend 目录下，完成如下
+
+```
+.
+├── backend
+│   └── index.js
+├── chainend
+│   ├── nodejs-sdk
+│   │   ├── CHANGELOG.md
+│   │   ├── lerna.json
+│   │   ├── LICENSE
+│   │   ├── node_modules
+│   │   ├── package.json
+│   │   ├── package-lock.json
+│   │   ├── packages
+│   │   ├── README.md
+│   │   └── test
+│   ├── nodes
+│   │   ├── 127.0.0.1
+│   │   └── cert
+│   └── utils
+│       ├── accounts
+│       ├── get_account.sh
+│       ├── keccak-256sum
+│       ├── login_account.sh
+│       └── register_account.sh
+└── frontend
+    ├── administrator.html
+    ├── css
+    │   ├── administrator.css
+    │   ├── enterprise.css
+    │   ├── index.css
+    │   ├── institution.css
+    │   └── simplecss.css
+    ├── enterprise.html
+    ├── images
+    │   └── bg2.jpg
+    ├── index.html
+    ├── institution.html
+    └── js
+        └── ajax.js
+```
+
+### 7. 使用 cli 进行初期搭建
+
+进入 ./chainend/nodes/127.0.0.1，运行 start_all.sh 脚本启动节点，再进入 ./chainend/nodejs-sdk/packages/cli 目录，在这个目录下准备使用 cli.js 进行一些操作。
+
+1. 部署智能合约 SupplyChain
+
+   ```shell
+   ./cli.js deploy SupplyChain
+   ```
+
+   结果如下
+
+   <img src="README.assets/image-20210129102931413.png" alt="image-20210129102931413" style="zoom:80%;" />
+
+   记录下输出中的 contractAddress，并打开 ~/SupplyChain/backend/index.js 文件，修改其中第十行代码的 contract 变量为这个 contractAddress，即
+
+   ```javascript
+   const contract = "0xfbdac044bfa49da96a0d8d273674540c10edf6fd"; // Need to be modified
+   ```
+
+2. 创建各个表
+
+   通过智能合约创建数据库中的各个表，如下
+
+   ```shell
+   ./cli.js call SupplyChain 0xfbdac044bfa49da96a0d8d273674540c10edf6fd createAccountTable
+   ./cli.js call SupplyChain 0xfbdac044bfa49da96a0d8d273674540c10edf6fd createPendTable
+   ./cli.js call SupplyChain 0xfbdac044bfa49da96a0d8d273674540c10edf6fd createBillTable
+   ```
+
+3. 将 Admin 加入到 Account 表
+
+   由于启动网页至少需要有管理员，因此管理员需要手动将自己加入 Account 表，如下
+
+   ```shell
+   ./cli.js sql 'insert into Account(foobar, id, name, role, credit) values("idot", "0xf1e14c24f66150f491a44c27851d0ab9a22bf829", "Admin", "administrator", "100")'
+   ```
+
+   这里 values 中的 id 值是前面申请管理员账户时的地址。
+
+### 8. 开始监听
+
+进入 ~/SupplyChain/backend，运行
+
+```shell
+sudo node index.js
+```
+
+而后打开网页就可以开始使用了，打开效果如下
+
+| ![image-20210129104440557](README.assets/image-20210129104440557.png) | ![image-20210129104954642](README.assets/image-20210129104954642.png) |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 开始页面                                                     | 管理员页面                                                   |

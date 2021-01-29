@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>机构</title>
+		<link rel="stylesheet" type="text/css" href="./css/simplecss.css">
+		<link rel="stylesheet" type="text/css" href="./css/institution.css">
+		<script src="./js/ajax.js"></script>
+	</head>
+	<body>
+		<div class="nav">
+			<div class="nav">
+				<div class="container">
+					<div class="row">
+						<div class="col-md-10">
+							<a href="">供应链金融平台</a>
+						</div>
+						<div class="col-md-2"><a href="./index.html" id="logout">退出系统</a></div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="container">
+			<div class="row">
+				<div class="col-md-12">
+					<table class="table table-bordered" id="table">
+						<tr>
+							<th>借款方</th>
+							<th>被借款方</th>
+							<th>金额</th>
+							<th>时间戳</th>
+							<th>时长</th>
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+
+
+		<script>
+			var me_id = window.location.search.substr(1);
+
+			var oTable = document.getElementById('table');
+
+			// 获取数据
+			ajax({
+				method: 'GET',
+				url: '/selectPendWitness',
+				success: function(result) {
+					if (result.status === 0) {
+						// 删除原表格
+						oTable.innerHTML = '';
+
+						var tr = document.createElement('tr');
+						tr.innerHTML = '<th>借款方</th><th>被借款方</th><th>金额</th><th>时间戳</th><th>时长</th>';
+						oTable.append(tr);
+
+						// 将数据显示到表格
+						for (var i = 0; i < result.data.length; i++) {
+							var oTr = document.createElement('tr');
+							var oTd1 = document.createElement('td');
+							var oTd2 = document.createElement('td');
+							var oTd3 = document.createElement('td');
+							var oTd4 = document.createElement('td');
+							var oTd5 = document.createElement('td');
+							oTd1.innerHTML = result.data[i].borrower;
+							oTd2.innerHTML = result.data[i].lender;
+							oTd3.innerHTML = result.data[i].amount;
+							oTd4.innerHTML = result.data[i].timestamp;
+							oTd5.innerHTML = result.data[i].duration;
+							oTr.append(oTd1);
+							oTr.append(oTd2);
+							oTr.append(oTd3);
+							oTr.append(oTd4);
+							oTr.append(oTd5);
+
+							// 批准按钮
+							var op = document.createElement('td');
+							op.innerHTML = '<button class="btn btn-primary">批准</button>'
+							oTr.append(op);
+							//将一行加入表格
+							oTable.append(oTr);
+						}
+					} else {
+						alert(result.message);
+					}
+				}
+			})
+			// 点击批准按钮触发
+			oTable.onclick = function(ev) {
+				var ev = ev || event;
+				if (ev.target.innerHTML === '批准') {
+					//找到对应父级tr（表格行）
+					var oTdlist = ev.target.parentNode.parentNode.childNodes;
+					ajax({
+						method: 'POST',
+						url: '/permit',
+						data: '{"borrower":"' + oTdlist[0].innerHTML + '","lender":"' + oTdlist[1].innerHTML+ '","amount":' + oTdlist[2].innerHTML + ',"timestamp":' + oTdlist[3].innerHTML +
+							',"duration":' + oTdlist[4].innerHTML + '}',
+						success(result) {
+							alert(result.message);
+							if (result.status === 0) {
+								window.location.reload();
+							}
+						}
+					})
+				}
+			}
+		</script>
+	</body>
+</html>

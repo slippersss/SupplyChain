@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>企业</title>
+		<link rel="stylesheet" type="text/css" href="./css/simplecss.css">
+		<link rel="stylesheet" type="text/css" href="./css/enterprise.css">
+		<script src="./js/ajax.js"></script>
+	</head>
+	<body>
+		<div class="nav">
+			<div class="nav">
+				<div class="container">
+					<div class="row">
+						<div class="col-md-10">
+							<a href="">供应链金融平台</a>
+						</div>
+						<div class="col-md-2"><a href="./index.html" id="logout">退出系统</a></div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="row" id="header">
+			<div class="col-md-15">
+				<span id="span_sign" class="active">签发</span>
+				<span id="span_confirm">确认</span>
+				<span id="span_transfer">转让</span>
+				<span id="span_financing">融资</span>
+				<span id="span_pay">支付</span>
+			</div>
+		</div>
+
+
+
+		<!--签发panel-->
+		<div class="panel panel-default" id="panel_sign">
+			<div class="panel-heading">
+				<div class="panel-title">签发</div>
+			</div>
+			<div class="panel-body">
+				<div class="row">
+					<div class="col-md-3">被借款方:</div>
+					<div class="col-md-9">
+						<select id="sign_lender">
+						</select>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-3">见证机构:</div>
+					<div class="col-md-9">
+						<select id="sign_witness">
+						</select>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-3">金额:</div>
+					<div class="col-md-9"><input type="text" id="sign_amount"></div>
+				</div>
+				<div class="row">
+					<div class="col-md-3">时长(天):</div>
+					<div class="col-md-9"><input type="text" id="sign_duration"></div>
+				</div>
+			</div>
+			<div class="panel-footer">
+				<button class="btn btn-primary" id="btn_sign_save">确定</button>
+			</div>
+		</div>
+
+		<!-- 确认pannel -->
+		<div class="panel panel-default" id="panel_confirm">
+			<div class="container">
+				<div class="row">
+					<div class="col-md-12">
+						<table class="table table-bordered" id="confirm_table">
+							<tr>
+								<th>被借款方</th>
+								<th>见证机构</th>
+								<th>金额</th>
+								<th>时间戳</th>
+								<th>时长</th>
+								<th>状态</th>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!--转让panel-->
+		<div class="panel panel-default" id="panel_transfer">
+			<div class="panel-heading">
+				<div class="panel-title">转让:</div>
+			</div>
+			<div class="panel-body">
+				<div class="row">
+					<div class="col-md-3">资产: </div>
+					<div class="col-md-3" id="transfer_asset"></div>
+					<div class="col-md-3">信用分: </div>
+					<div class="col-md-3" id="transfer_credit"></div>
+				</div>
+				<div class="row">
+					<div class="col-md-3">接收方:</div>
+					<div class="col-md-9">
+						<select id="transfer_receiver">
+						</select>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-3">金额:</div>
+					<div class="col-md-9"><input type="text" id="transfer_total_amount"></div>
+				</div>
+			</div>
+			<div class="panel-footer">
+				<button class="btn btn-primary" id="btn_transfer_save">确定</button>
+			</div>
+		</div>
+		<!--融资panel-->
+		<div class="panel panel-default" id="panel_financing">
+			<div class="panel-heading">
+				<div class="panel-title">融资:</div>
+			</div>
+			<div class="panel-body">
+				<div class="row">
+					<div class="col-md-3">资产: </div>
+					<div class="col-md-3" id="financing_asset"></div>
+					<div class="col-md-3">信用分: </div>
+					<div class="col-md-3" id="financing_credit"></div>
+				</div>
+				<div class="row">
+					<div class="col-md-3">机构:</div>
+					<div class="col-md-9">
+						<select id="financing_institutionr">
+						</select>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-3">金额:</div>
+					<div class="col-md-9"><input type="text" id="financing_total_amount"></div>
+				</div>
+			</div>
+			<div class="panel-footer">
+				<button class="btn btn-primary" id="btn_financing_save">确定</button>
+			</div>
+		</div>
+		<!--支付panel-->
+		<div class="panel panel-default" id="panel_pay">
+			<div class="container">
+				<div class="row">
+					<div class="col-md-12">
+						<table class="table table-bordered" id="pay_table">
+							<tr>
+								<th>被借款方</th>
+								<th>见证机构</th>
+								<th>金额</th>
+								<th>时间戳</th>
+								<th>期限</th>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script>
+			var me_id = window.location.search.substr(1);
+			var map = {};
+
+			var span_sign = document.getElementById("span_sign");
+			var span_confirm = document.getElementById("span_confirm");
+			var span_transfer = document.getElementById("span_transfer");
+			var span_financing = document.getElementById("span_financing");
+			var span_pay = document.getElementById("span_pay");
+
+			// 签发 
+			var panel_sign = document.getElementById("panel_sign");
+			var sign_lender = document.getElementById("sign_lender");
+			var sign_witness = document.getElementById("sign_witness");
+			var sign_amount = document.getElementById("sign_amount");
+			var sign_duration = document.getElementById("sign_duration");
+			var btn_sign_save = document.getElementById("btn_sign_save");
+			// 确认
+			var panel_confirm = document.getElementById("panel_confirm");
+			var confirm_table = document.getElementById("confirm_table");
+			// 转让 
+			var panel_transfer = document.getElementById("panel_transfer");
+			var transfer_receiver = document.getElementById("transfer_receiver");
+			var transfer_total_amount = document.getElementById("transfer_total_amount");
+			var btn_transfer_save = document.getElementById("btn_transfer_save");
+			// 融资 
+			var panel_financing = document.getElementById("panel_financing");
+			var financing_institutionr = document.getElementById("financing_institutionr");
+			var financing_total_amount = document.getElementById("financing_total_amount");
+			var btn_financing_save = document.getElementById("btn_financing_save");
+			// 支付
+			var panel_pay = document.getElementById("panel_pay");
+			var pay_table = document.getElementById("pay_table");
+
+
+			//////////////////////////////////////
+			//// 切换显示页面\请求表单信息
+			var cur_active_panel = panel_sign;
+			cur_active_panel.style.display = "block";
+			var cur_active_span = span_sign;
+			cur_active_span.classList.add('active');
+
+			// 被借款方
+			ajax({
+				method: 'GET',
+				url: '/selectAccountEnterprise',
+				success(result) {
+					if (result.status === 0) {
+						sign_lender.innerHTML = ''; // 清空原有数据
+						for (var i = 0; i < result.data.length; i++) {
+							if(result.data[i].id != me_id) {
+								var option = document.createElement('option');
+								option.innerHTML = result.data[i].name;
+								sign_lender.append(option);
+								map[result.data[i].name] = result.data[i].id;
+							}
+						}
+					}
+				}
+			})
+			// 见证机构
+			ajax({
+				method: 'GET',
+				url: '/selectAccountInstitution',
+				success(result) {
+					if (result.status === 0) {
+						sign_witness.innerHTML = ''; // 清空原有数据
+						for (var i = 0; i < result.data.length; i++) {
+							if(result.data[i].id != me_id) {
+								var option = document.createElement('option');
+								option.innerHTML = result.data[i].name;
+								sign_witness.append(option);
+								map[result.data[i].name] = result.data[i].id;
+							}
+						}
+					}
+				}
+			})
+
+			// 签发
+			span_sign.onclick = function() {
+				cur_active_span.classList.remove('active');
+				span_sign.classList.add('active');
+				cur_active_span = span_sign;
+
+				cur_active_panel.style.display = "none";
+				panel_sign.style.display = "block";
+				cur_active_panel = panel_sign;
+
+
+				// 被借款方
+				ajax({
+					method: 'GET',
+					url: '/selectAccountEnterprise',
+					success(result) {
+						if (result.status === 0) {
+							sign_lender.innerHTML = ''; // 清空原有数据
+							for (var i = 0; i < result.data.length; i++) {
+								if(result.data[i].id != me_id) {
+									var option = document.createElement('option');
+									option.innerHTML = result.data[i].name;
+									sign_lender.append(option)
+								}
+							}
+						}
+					}
+				})
+				// 见证机构
+				ajax({
+					method: 'GET',
+					url: '/selectAccountInstitution',
+					success(result) {
+						if (result.status === 0) {
+							sign_witness.innerHTML = ''; // 清空原有数据
+							for (var i = 0; i < result.data.length; i++) {
+								if(result.data[i].id != me_id) {
+									var option = document.createElement('option');
+									option.innerHTML = result.data[i].name;
+									sign_witness.append(option)
+								}
+							}
+						}
+					}
+				})
+			}
+			btn_sign_save.onclick = function() {
+				if (NotNumber(sign_duration.value) || NotNumber(sign_amount.value)) {
+					alert('金额、时长必须为有效数值!');
+				} else {
+					ajax({
+						method: 'POST',
+						url: '/sign',
+						data: '{"lender":"' + map[sign_lender.value] + '","witness":"' + map[sign_witness.value] + '","amount":' + sign_amount.value +
+							',"duration":' + sign_duration.value + '}',
+						success(result) {
+							alert(result.message);
+						}
+					})
+				}
+			}
+			////////////////////////////////////
+			// 确认
+			span_confirm.onclick = function() {
+				cur_active_span.classList.remove('active');
+				span_confirm.classList.add('active');
+				cur_active_span = span_confirm;
+
+				cur_active_panel.style.display = "none";
+				panel_confirm.style.display = "block";
+				cur_active_panel = panel_confirm;
+				// 获取数据
+				ajax({
+					method: 'GET',
+					url: '/selectPendBorrower',
+					success: function(result) {
+						if (result.status === 0) {
+							// 删除原表格
+							confirm_table.innerHTML = '';
+
+							var tr = document.createElement('tr');
+							tr.innerHTML = '<th>被借款方</th><th>见证机构</th><th>金额</th><th>时间戳</th><th>时长</th><th>状态</th>';
+							confirm_table.append(tr);
+
+							// 将数据显示到表格
+							for (var i = 0; i < result.data.length; i++) {
+								var oTr = document.createElement('tr');
+								var oTd1 = document.createElement('td');
+								var oTd2 = document.createElement('td');
+								var oTd3 = document.createElement('td');
+								var oTd4 = document.createElement('td');
+								var oTd5 = document.createElement('td');
+								var oTd6 = document.createElement('td');
+								oTd1.innerHTML = result.data[i].lender;
+								oTd2.innerHTML = result.data[i].witness;
+								oTd3.innerHTML = result.data[i].amount;
+								oTd4.innerHTML = result.data[i].timestamp;
+								oTd5.innerHTML = result.data[i].duration;
+								oTd6.innerHTML = result.data[i].state;
+								oTr.append(oTd1);
+								oTr.append(oTd2);
+								oTr.append(oTd3);
+								oTr.append(oTd4);
+								oTr.append(oTd5);
+								oTr.append(oTd6);
+
+								// 确认按钮
+								if (result.data[i].state === 'pass') {
+									var op = document.createElement('td');
+									op.innerHTML = '<button class="btn btn-primary">确认</button>'
+									oTr.append(op);
+								}
+								//将一行加入表格
+								confirm_table.append(oTr);
+							}
+						} else {
+							alert(result.message);
+						}
+					}
+				})
+			}
+			// 点击确认按钮触发
+			confirm_table.onclick = function(ev) {
+				var ev = ev || event;
+				if (ev.target.innerHTML === '确认') {
+					//找到对应父级tr（表格行）
+					var oTdlist = ev.target.parentNode.parentNode.childNodes;
+					ajax({
+						method: 'POST',
+						url: '/confirm',
+						data: '{"lender":"' + oTdlist[0].innerHTML + '","witness":"' + oTdlist[1].innerHTML + '","timestamp":' + oTdlist[3].innerHTML +
+							',"duration":' + oTdlist[4].innerHTML + '}',
+						success(result) {
+							alert(result.message);
+							if (result.status === 0) {
+								window.location.reload();
+							}
+						}
+					})
+				}
+			}
+
+			// 转让
+			span_transfer.onclick = function() {
+				ajax({
+					method: 'GET',
+					url: '/checkInformation',
+					success: (result) => {
+						var transfer_asset = document.getElementById("transfer_asset");
+						var transfer_credit = document.getElementById("transfer_credit");
+						transfer_asset.innerHTML = result.asset;
+						transfer_credit.innerHTML = result.credit;
+					}
+				});
+
+				cur_active_span.classList.remove('active');
+				span_transfer.classList.add('active');
+				cur_active_span = span_transfer;
+
+				cur_active_panel.style.display = "none";
+				panel_transfer.style.display = "block";
+				cur_active_panel = panel_transfer;
+
+				// 接收方
+				ajax({
+					method: 'GET',
+					url: '/selectAccountEnterprise',
+					success(result) {
+						if (result.status === 0) {
+							transfer_receiver.innerHTML = ''; // 清空原有数据
+							for (var i = 0; i < result.data.length; i++) {
+								if(result.data[i].id != me_id) {
+									var option = document.createElement('option');
+									option.innerHTML = result.data[i].name;
+									transfer_receiver.append(option)
+								}
+							}
+						}
+					}
+				})
+			}
+
+			btn_transfer_save.onclick = function() {
+				if (NotNumber(transfer_total_amount.value)) {
+					alert('金额必须为有效数值!');
+				} else {
+					ajax({
+						method: 'POST',
+						url: '/transfer',
+						data: '{"receiver":"' + map[transfer_receiver.value] + '","total_amount":' + transfer_total_amount.value + '}',
+						success(result) {
+							alert(result.message);
+						}
+					})
+				}
+			}
+			// 融资
+			span_financing.onclick = function() {
+				ajax({
+					method: 'GET',
+					url: '/checkInformation',
+					success: (result) => {
+						var financing_asset = document.getElementById("financing_asset");
+						var financing_credit = document.getElementById("financing_credit");
+						financing_asset.innerHTML = result.asset;
+						financing_credit.innerHTML = result.credit;
+					}
+				});
+
+				cur_active_span.classList.remove('active');
+				span_financing.classList.add('active');
+				cur_active_span = span_financing;
+
+				cur_active_panel.style.display = "none";
+				panel_financing.style.display = "block";
+				cur_active_panel = panel_financing;
+
+				// 机构
+				ajax({
+					method: 'GET',
+					url: '/selectAccountInstitution',
+					success(result) {
+						if (result.status === 0) {
+							financing_institutionr.innerHTML = ''; // 清空原有数据
+							for (var i = 0; i < result.data.length; i++) {
+								if(result.data[i].id != me_id) {
+									var option = document.createElement('option');
+									option.innerHTML = result.data[i].name;
+									financing_institutionr.append(option)
+								}
+							}
+						}
+					}
+				})
+			}
+			btn_financing_save.onclick = function() {
+				if (NotNumber(financing_total_amount.value)) {
+					alert('金额必须为有效数值!');
+				} else {
+					ajax({
+						method: 'POST',
+						url: '/financing',
+						data: '{"institution":"' + map[financing_institutionr.value] + '","total_amount":' + financing_total_amount.value + '}',
+						success(result) {
+							alert(result.message);
+						}
+					})
+				}
+			}
+			// 支付
+			span_pay.onclick = function() {
+				cur_active_span.classList.remove('active');
+				span_pay.classList.add('active');
+				cur_active_span = span_pay;
+
+				cur_active_panel.style.display = "none";
+				panel_pay.style.display = "block";
+				cur_active_panel = panel_pay;
+
+				// 获取数据
+				ajax({
+					method: 'GET',
+					url: '/selectBillBorrower',
+					success: function(result) {
+						if (result.status === 0) {
+							// 删除原表格
+							pay_table.innerHTML = '';
+
+							var tr = document.createElement('tr');
+							tr.innerHTML = '<th>被借款方</th><th>见证机构</th><th>金额</th><th>时间戳</th><th>期限</th>';
+							pay_table.append(tr);
+
+							// 将数据显示到表格
+							for (var i = 0; i < result.data.length; i++) {
+								var oTr = document.createElement('tr');
+								var oTd1 = document.createElement('td');
+								var oTd2 = document.createElement('td');
+								var oTd3 = document.createElement('td');
+								var oTd4 = document.createElement('td');
+								var oTd5 = document.createElement('td');
+								oTd1.innerHTML = result.data[i].lender;
+								oTd2.innerHTML = result.data[i].witness;
+								oTd3.innerHTML = result.data[i].amount;
+								oTd4.innerHTML = result.data[i].timestamp;
+								oTd5.innerHTML = result.data[i].deadline;
+								oTr.append(oTd1);
+								oTr.append(oTd2);
+								oTr.append(oTd3);
+								oTr.append(oTd4);
+								oTr.append(oTd5);
+
+								// 支付按钮
+								var op = document.createElement('td');
+								op.innerHTML = '<button class="btn btn-primary">支付</button>'
+								oTr.append(op);
+
+								//将一行加入表格
+								pay_table.append(oTr);
+							}
+						} else {
+							alert(result.message);
+						}
+					}
+				})
+			}
+
+			// 点击支付按钮触发
+			pay_table.onclick = function(ev) {
+				var ev = ev || event;
+				if (ev.target.innerHTML === '支付') {
+					//找到对应父级tr（表格行）
+					var oTdlist = ev.target.parentNode.parentNode.childNodes;
+					ajax({
+						method: 'POST',
+						url: '/pay',
+						data: '{"lender":"' + oTdlist[0].innerHTML + '","witness":"' + oTdlist[1].innerHTML + '","amount":' + oTdlist[2].innerHTML +
+							',"timestamp":' + oTdlist[3].innerHTML +
+							',"deadline":' + oTdlist[4].innerHTML + '}',
+						success(result) {
+							alert(result.message);
+							if (result.status === 0) {
+								window.location.reload();
+							}
+						}
+					})
+				}
+			}
+
+			function NotNumber(val) {
+				if (val == "" || isNaN(val)) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+		</script>
+	</body>
+</html>
