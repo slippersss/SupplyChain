@@ -80,7 +80,6 @@ cp ~/fisco/console/conf/sdk.key ~/fisco/console/conf/sdk.crt ~/fisco/console/con
 同时打开 ./chainend/nodejs-sdk/packages/cli/conf/confjg.json 文件，根据自己的搭建的链的情况修改 "nodes" 项，若是按照热身阶段搭建的联盟链，则可以按照下面修改
 
 ```json
-...
 "nodes": [
         {
             "ip": "127.0.0.1",
@@ -103,7 +102,6 @@ cp ~/fisco/console/conf/sdk.key ~/fisco/console/conf/sdk.crt ~/fisco/console/con
             "port": "20204"
         }
     ],
-...
 ```
 
 其中 config.json 还有账户的设置，默认下，启用 ndejs SDK 自带控制台会启动这里面的第一个账户 alice，我们可以自己设置账户名为 Admin，以之为管理员加入其中，由于是管理员，且搭建初期需要用控制台来操作，因此需要将 Admin 放在第一个位置，如下
@@ -130,7 +128,6 @@ cp ~/fisco/console/conf/sdk.key ~/fisco/console/conf/sdk.crt ~/fisco/console/con
             "password": "123456"
         }
     },
-...
 ```
 
 同时要将使用 get_account.sh 生成的管理员账户的 .pem 文件重命名为 Admin.pem 并移动至 ./chainend/nodejs-sdk/packages/cli/conf/accounts 下，具体步骤参考下面的教程。
